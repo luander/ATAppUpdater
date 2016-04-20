@@ -20,7 +20,7 @@ Checks if there is a newer version of your app in the AppStore and alerts the us
 ````objc
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-   [[ATAppUpdater sharedUpdater] showUpdateWithForce];
+   [[ATAppUpdater sharedUpdater:self] showUpdateWithForce];
    return YES;
 }
 ````
@@ -28,7 +28,7 @@ Checks if there is a newer version of your app in the AppStore and alerts the us
 ````objc
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-   [[ATAppUpdater sharedUpdater] showUpdateWithConfirmation];
+   [[ATAppUpdater sharedUpdater:self] showUpdateWithConfirmation];
    return YES;
 }
 ````
@@ -49,6 +49,38 @@ Checks if there is a newer version of your app in the AppStore and alerts the us
 }
 ````
 ![ATAppUpdater3](http://apptality.ae/assets/ATAppUpdater/ATAppUpdater3.png)
+
+---
+**Delegates:**
+````objc
+@interface AppDelegate () <UISplitViewControllerDelegate, ATAppUpdaterDelegate>
+
+@end
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+	[[ATAppUpdater sharedUpdater:self] showUpdateWithConfirmation];
+	return YES;
+}
+
+- (void)atAppUpdaterDidShowUpdateDialog {
+	    NSLog(@"Update dialog shown");
+}
+
+- (void)atAppUpdaterUserDidLaunchAppStore {
+	    NSLog(@"App Store launched");
+}
+
+- (void)atAppUpdaterUserDidSkipVersion {
+	    NSLog(@"User skipped this version");
+}
+
+- (void)atAppUpdaterUserDidCancel {
+	    NSLog(@"atAppUpdaterUserDidCancel");
+}
+````
 
 ## Installation
 

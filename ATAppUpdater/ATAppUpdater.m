@@ -31,12 +31,15 @@
 #pragma mark - Init
 
 
-+ (id)sharedUpdater
++ (id)sharedUpdater:(Class <ATAppUpdaterDelegate>) delegate
 {
     static ATAppUpdater *sharedUpdater;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedUpdater = [[ATAppUpdater alloc] init];
+        if ([delegate conformsToProtocol:@protocol(ATAppUpdaterDelegate)]) {
+            sharedUpdater.delegate = delegate;
+        }
     });
     return sharedUpdater;
 }
@@ -65,6 +68,9 @@
     [self checkNewAppVersion:^(BOOL newVersion, NSString *version) {
         if (newVersion) {
             [[self alertUpdateForVersion:version withForce:YES] show];
+            if (_delegate != nil && [_delegate respondsToSelector:@selector(atAppUpdaterDidShowUpdateDialog)]) {
+                [_delegate atAppUpdaterDidShowUpdateDialog];
+            }
         }
     }];
 }
@@ -77,6 +83,9 @@
     [self checkNewAppVersion:^(BOOL newVersion, NSString *version) {
         if (newVersion) {
             [[self alertUpdateForVersion:version withForce:NO] show];
+        }
+        if (_delegate != nil && [_delegate respondsToSelector:@selector(atAppUpdaterDidShowUpdateDialog)]) {
+            [_delegate atAppUpdaterDidShowUpdateDialog];
         }
     }];
 }
@@ -153,7 +162,7 @@ NSString *appStoreURL = nil;
 - (UIAlertView *)alertUpdateForVersion:(NSString *)version withForce:(BOOL)force
 {
     NSString *msg = [NSString stringWithFormat:self.alertMessage, version];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:self.alertTitle message:msg delegate:self cancelButtonTitle:force ? nil:self.alertUpdateButtonTitle otherButtonTitles:force ? self.alertUpdateButtonTitle:self.alertCancelButtonTitle, nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:self.alertTitle message:msg delegate:self cancelButtonTitle:force ? nil:self.alertUpdateButtonTitle otherButtonTitles:force ? self.alertUpdateButtonTitle:self.alertCancelButtonTitle, force ? self.alertUpdateButtonTitle:self.alertSkipButtonTitle, nil];
     return alert;
 }
 
@@ -163,9 +172,20 @@ NSString *appStoreURL = nil;
         NSURL *appUrl = [NSURL URLWithString:appStoreURL];
         if ([[UIApplication sharedApplication] canOpenURL:appUrl]) {
             [[UIApplication sharedApplication] openURL:appUrl];
+            if (_delegate != nil && [_delegate respondsToSelector:@selector(atAppUpdaterUserDidLaunchAppStore)]) {
+                [_delegate atAppUpdaterUserDidLaunchAppStore];
+            }
         } else {
             UIAlertView *cantOpenUrlAlert = [[UIAlertView alloc] initWithTitle:@"Not Available" message:@"Could not open the AppStore, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [cantOpenUrlAlert show];
+        }
+    } else if (buttonIndex == 1) {
+        if (_delegate != nil && [_delegate respondsToSelector:@selector(atAppUpdaterUserDidCancel)]) {
+            [_delegate atAppUpdaterUserDidCancel];
+        }
+    } else if (buttonIndex == 2) {
+        if (_delegate != nil && [_delegate respondsToSelector:@selector(atAppUpdaterUserDidSkipVersion)]) {
+            [_delegate atAppUpdaterUserDidSkipVersion];
         }
     }
 }

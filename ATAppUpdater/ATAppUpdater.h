@@ -26,10 +26,26 @@
 #import <UIKit/UIKit.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 
+@protocol ATAppUpdaterDelegate <NSObject>
+
+@optional
+
+- (void)atAppUpdaterDidShowUpdateDialog;
+
+- (void)atAppUpdaterUserDidLaunchAppStore;
+
+- (void)atAppUpdaterUserDidSkipVersion;
+
+- (void)atAppUpdaterUserDidCancel;
+
+@end
+
 @interface ATAppUpdater : NSObject <UIAlertViewDelegate>
 
+@property (nonatomic, assign) id <ATAppUpdaterDelegate> delegate;
+
 /** Shared instance. [ATAppUpdater sharedUpdater] */
-+ (id)sharedUpdater;
++ (id)sharedUpdater:(nullable Class <ATAppUpdaterDelegate>) delegate;
 
 /** Checks for newer version and show alert without a cancel button. */
 - (void)showUpdateWithForce;
@@ -52,5 +68,8 @@ __attribute((deprecated("Use 'showUpdateWithForce' or 'showUpdateWithConfirmatio
 
 /** Set the UIAlertView cancel button's title. NSLocalizedString() supported. */
 @property (nonatomic, weak) NSString *alertCancelButtonTitle;
+
+/** Set the UIAlertView skip button's title. NSLocalizedString() supported. */
+@property (nonatomic, weak) NSString *alertSkipButtonTitle;
 
 @end
